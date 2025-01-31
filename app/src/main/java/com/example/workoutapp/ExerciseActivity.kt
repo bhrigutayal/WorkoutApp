@@ -1,17 +1,24 @@
 package com.example.workoutapp
 
+import android.media.MediaPlayer
+import android.net.Uri
 import android.os.Bundle
 import android.os.CountDownTimer
+import android.speech.tts.TextToSpeech
 import android.view.View
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
+import android.util.Log;
+import android.widget.LinearLayout
 import androidx.core.view.WindowInsetsCompat
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.workoutapp.databinding.ActivityExerciseBinding
+import java.util.Locale
 
-class ExerciseActivity : AppCompatActivity() {
+class ExerciseActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private var binding: ActivityExerciseBinding? = null
 
@@ -23,6 +30,12 @@ class ExerciseActivity : AppCompatActivity() {
 
     private var exerciseList : ArrayList<ExerciseModel>? = null
     private var currentExercisePosition = -1
+    private var tts : TextToSpeech? = null
+    private var player : MediaPlayer? = null
+
+    private var exerciseAdapter : ExerciseStatusAdapter? = null
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -44,6 +57,8 @@ class ExerciseActivity : AppCompatActivity() {
         }
 
         exerciseList = Constants.defaultExerciseList()
+
+        tts = TextToSpeech(this@ExerciseActivity,this,)
         binding?.toolbarExercise?.setNavigationOnClickListener {
             callback.handleOnBackPressed()
         }
@@ -56,7 +71,22 @@ class ExerciseActivity : AppCompatActivity() {
         }
     }
 
+    private fun setUpExerciseRecyclerView(){
+        binding?.rvExerciseStatus?.layoutManager = LinearLayoutManager(this,LinearLayoutManager.HORIZONTAL,false)
+        exerciseAdapter = ExerciseStatusAdapter(exerciseList!!)
+        binding?.rvExerciseStatus?.adapter = exerciseAdapter
+    }
     private fun setupRestView(){
+
+        try{
+            val soundURI = Uri.parse("android.resource://com.example.workoutapp/"+R.raw.press_start)
+            player = MediaPlayer.create(applicationContext,soundURI)
+            player?.isLooping = false
+            player?.start()
+        }catch (e : Exception){
+            e.printStackTrace()
+        }
+
         binding?.flRestView?.visibility = View.VISIBLE
         binding?.tvTitle?.visibility = View.VISIBLE
         binding?.tvUpcoming?.visibility = View.VISIBLE
@@ -69,6 +99,7 @@ class ExerciseActivity : AppCompatActivity() {
             restTimer?.cancel()
             restProgress = 0
         }
+        speakOut("Now rest for 10 seconds")
         binding?.tvUpComingExerciseName?.text = exerciseList!![currentExercisePosition + 1].getName()
         binding?.tvTitle?.text = "GET READY!"
         setRestProgressBar()
@@ -109,6 +140,7 @@ class ExerciseActivity : AppCompatActivity() {
             exerciseTimer?.cancel()
             exerciseProgress = 0
         }
+        speakOut(exerciseList!![currentExercisePosition].getName())
         binding?.tvExercise?.text = exerciseList?.get(currentExercisePosition)?.getName()
         binding?.ivImage?.setImageResource(exerciseList!![currentExercisePosition].getImage())
         setExerciseProgressBar()
@@ -152,7 +184,27 @@ class ExerciseActivity : AppCompatActivity() {
             exerciseTimer?.cancel()
             exerciseProgress = 0
         }
+        if(tts != null){
+            tts!!.stop()
+            tts!!.shutdown()
+        }
+        if(player != null){
+            player!!.stop()
+        }
         binding = null
+    }
+
+    override fun onInit(status: Int) {
+        if(status == TextToSpeech.SUCCESS){
+            val result = tts?.setLanguage(Locale.US)
+
+            if(result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED){
+                Log.e("TTS", "Initialization Failed!")
+            }
+        }
+    }
+    private fun speakOut(text : String){
+        tts!!.speak(text, TextToSpeech.QUEUE_FLUSH,null,"")
     }
 
 
