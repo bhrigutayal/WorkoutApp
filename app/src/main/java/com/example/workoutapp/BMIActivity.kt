@@ -35,36 +35,23 @@ class BMIActivity : AppCompatActivity() {
         }
         val callback = object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-
+                finish()
             }
         }
         onBackPressedDispatcher.addCallback(this, callback)
         binding?.btnCalculateBmi?.setOnClickListener {
-            if(validateMetricUnit()){
-                val heightValue : Float = binding?.etMetricUnitHeight?.text.toString().toFloat()
-                val weightValue : Float = binding?.etMetricUnitWeight?.text.toString().toFloat()
-                val bmi = weightValue / (heightValue * heightValue)
-                displayBMIResult(bmi)
-
-            }else{
-                Toast.makeText(this@BMIActivity,"Please enter valid values",Toast.LENGTH_SHORT).show()
-            }
+            calculateUnits()
         }
         binding?.toolbarBmiActivity?.setNavigationOnClickListener {
             callback.handleOnBackPressed()
         }
         makeVisibleMetricUnits()
         binding?.rgUnits?.setOnCheckedChangeListener { group, checkedId: Int ->
-            if(checkedId == R.id.rbMetricUnits){
+            if (checkedId == R.id.rbMetricUnits) {
                 makeVisibleMetricUnits()
-            }else{
+            } else {
                 makeVisibleUsUnits()
             }
-        }
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
         }
     }
     private fun makeVisibleMetricUnits(){
@@ -82,8 +69,7 @@ class BMIActivity : AppCompatActivity() {
 
     }
     private fun makeVisibleUsUnits(){
-        currentVisibleView = METRIC_UNITS_VIEW
-        binding?.tilMetricUnitWeight?.visibility = View.INVISIBLE
+        currentVisibleView = US_UNITS_VIEW
         binding?.tilMetricUnitHeight?.visibility = View.INVISIBLE
 
         binding?.tilMetricUnitWeight?.hint = "Weight (in lbs)"
@@ -142,6 +128,44 @@ class BMIActivity : AppCompatActivity() {
         if(binding?.etMetricUnitWeight?.text.toString().isEmpty()){
             isValid = false
         }else if(binding?.etMetricUnitHeight?.text.toString().isEmpty()){
+            isValid = false
+        }
+        return isValid
+    }
+
+    private fun calculateUnits(){
+        if(currentVisibleView == METRIC_UNITS_VIEW) {
+            if (validateMetricUnit()) {
+                val heightValue: Float = binding?.etMetricUnitHeight?.text.toString().toFloat()
+                val weightValue: Float = binding?.etMetricUnitWeight?.text.toString().toFloat()
+                val bmi = weightValue / (heightValue/100 * heightValue/100)
+                displayBMIResult(bmi)
+
+            }else{
+                Toast.makeText(this@BMIActivity,"Please enter valid values",Toast.LENGTH_SHORT).show()
+            }
+        }else{
+            if(validateUsUnit()){
+                val heightValueFeet : String = binding?.etUsMetricUnitHeightFeet?.text.toString()
+                val heightValueInch : String = binding?.etUsMetricUnitHeightInch?.text.toString()
+                val weightValue : Float = binding?.etMetricUnitWeight?.text.toString().toFloat()
+                val heightValue = heightValueInch.toFloat() + heightValueFeet.toFloat() * 12
+
+                val bmi = 703 * (weightValue/(heightValue*heightValue))
+                displayBMIResult(bmi)
+            }else{
+                Toast.makeText(this@BMIActivity,"Please enter valid values",Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+    private fun validateUsUnit() : Boolean {
+        var isValid = true
+
+        if(binding?.etMetricUnitWeight?.text.toString().isEmpty()){
+            isValid = false
+        }else if(binding?.etUsMetricUnitHeightFeet?.text.toString().isEmpty()){
+            isValid = false
+        }else if(binding?.etUsMetricUnitHeightInch?.text.toString().isEmpty()){
             isValid = false
         }
         return isValid

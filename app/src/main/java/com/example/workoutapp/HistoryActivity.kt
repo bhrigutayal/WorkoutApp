@@ -1,38 +1,38 @@
 package com.example.workoutapp
 
+import android.app.Dialog
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.example.workoutapp.databinding.ActivityFinishBinding
+import com.example.workoutapp.databinding.ActivityHistoryBinding
+import com.example.workoutapp.databinding.DialogCustomBackConfirmationBinding
 
-class FinishActivity : AppCompatActivity() {
+class HistoryActivity : AppCompatActivity() {
 
-    private var binding: ActivityFinishBinding? = null
+    private var binding : ActivityHistoryBinding? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        binding =  ActivityFinishBinding.inflate(layoutInflater)
+        binding = ActivityHistoryBinding.inflate(layoutInflater)
         setContentView(binding?.root)
-        setSupportActionBar(binding?.toolbarFinishActivity)
-        if (supportActionBar != null) {
+
+        setSupportActionBar(binding?.toolbarHistory)
+        if(supportActionBar != null){
             supportActionBar?.setDisplayHomeAsUpEnabled(true)
+            supportActionBar?.title = "History"
         }
         val callback = object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                Toast.makeText(this@FinishActivity, "Back button pressed!", Toast.LENGTH_SHORT)
-                    .show()
+                finish()
             }
         }
         onBackPressedDispatcher.addCallback(this, callback)
-        binding?.toolbarFinishActivity?.setNavigationOnClickListener {
+        binding?.toolbarHistory?.setNavigationOnClickListener {
             callback.handleOnBackPressed()
         }
-        binding?.btnFinish?.setOnClickListener {
-            finish()
-        }
+
     }
 }
