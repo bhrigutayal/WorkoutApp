@@ -2,7 +2,6 @@ package com.example.workoutapp
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.FrameLayout
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
